@@ -4,12 +4,13 @@ import subprocess
 import sys
 import platform
 import paramiko
+import nmap
 
 red = "\033[1;31m"
 green = "\033[1;32m"
 reset = "\033[0;0m"
 # Developer: SirCryptic (NullSecurityTeam)
-# Info: ThreatHunter 1.0
+# Info: ThreatHunter 1.1
 os.system('cls' if os.name == 'nt' else 'clear')
 banner = '''
 _____________                    ___________  __             _____             
@@ -44,10 +45,10 @@ def check_ids(host, port):
     except Exception as e:
         print(red + "Error while checking Intrusion Detection System: " + str(e) + reset)
 
-def check_antivirus():
+def check_antivirus(host):
     if sys.platform == "win32":
         try:
-            process = subprocess.Popen(['powershell.exe', 'Get-MpComputerStatus'], stdout=subprocess.PIPE)
+            process = subprocess.Popen(['powershell.exe', f'-ComputerName {host}', 'Get-MpComputerStatus'], stdout=subprocess.PIPE)
             stdout = process.communicate()[0]
             if b"Enabled" in stdout:
                 print(red + "Antivirus detected" + reset)
@@ -80,11 +81,17 @@ def check_ips(host, port):
     except Exception as e:
         print(red + "Error while checking Intrusion Prevention System: " + str(e) + reset)
 
-def check_os():
-    os_name = platform.system()
-    os_version = platform.release()
-    os_architecture = platform.machine()
-    print("Operating System:", os_name + " " + os_version + " " + os_architecture)
+def check_website_os(host):
+    try:
+        nm = nmap.PortScanner()
+        nm.scan(host, arguments='-O')
+        if 'osclass' in nm[host]:
+            for osclass in nm[host]['osclass']:
+                print("Operating System: " + osclass['osfamily'])
+        else:
+            print("Operating System: Unknown")
+    except Exception as e:
+        print("Error: Unable to scan target")
 
 def check_service(service_name):
     try:
@@ -131,12 +138,12 @@ else:
 
 port = int(input("Enter port number: "))
 
-check_os()
+check_website_os(host)
 check_service("ssh")
 check_service("httpd")
 check_firewall(host, port)
 check_ids(host, port)
-check_antivirus()
+check_antivirus(host)
 check_log4js_remote(host, port=22)
 check_nsg(host, port)
 check_ips(host, port)
