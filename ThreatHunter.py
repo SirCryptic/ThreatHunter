@@ -6,6 +6,19 @@ import sys
 red = "\033[1;31m"
 green = "\033[1;32m"
 reset = "\033[0;0m"
+# Developer: SirCryptic (NullSecurityTeam)
+# Info: ThreatHunter 1.0
+os.system('cls' if os.name == 'nt' else 'clear')
+banner = '''
+_____________                    ___________  __             _____             
+___  __/__  /___________________ __  /___  / / /___  __________  /_____________
+__  /  __  __ \_  ___/  _ \  __ `/  __/_  /_/ /_  / / /_  __ \  __/  _ \_  ___/
+_  /   _  / / /  /   /  __/ /_/ // /_ _  __  / / /_/ /_  / / / /_ /  __/  /    
+/_/    /_/ /_//_/    \___/\__,_/ \__/ /_/ /_/  \__,_/ /_/ /_/\__/ \___//_/     
+                                                                               
+'''
+
+print(banner)
 
 def check_firewall(host, port):
     try:
