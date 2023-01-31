@@ -2,6 +2,8 @@ import socket
 import os
 import subprocess
 import sys
+import platform
+import paramiko
 
 red = "\033[1;31m"
 green = "\033[1;32m"
@@ -56,13 +58,59 @@ def check_antivirus():
     else:
         print("Antivirus check not available on this operating system")
 
-def check_log4js():
+def check_nsg(host, port):
     try:
-        log4js = subprocess.run(["npm", "list", "--depth=0"], capture_output=True, text=True)
-        if "log4js" in log4js.stdout:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+        result = sock.connect_ex((host, port))
+        if result == 0:
+            print(green + "Network Security Group not detected" + reset)
+        else:
+            print(red + "Network Security Group detected" + reset)
+    except Exception as e:
+        print(red + "Error while checking Network Security Group: " + str(e) + reset)
+
+def check_ips(host, port):
+    try:
+        response = os.system("hping3 " + host + " -p " + str(port) + " -c 5")
+        if response == 0:
+            print(green + "Intrusion Prevention System not detected" + reset)
+        else:
+            print(red + "Intrusion Prevention System detected" + reset)
+    except Exception as e:
+        print(red + "Error while checking Intrusion Prevention System: " + str(e) + reset)
+
+def check_os():
+    os_name = platform.system()
+    os_version = platform.release()
+    os_architecture = platform.machine()
+    print("Operating System:", os_name + " " + os_version + " " + os_architecture)
+
+def check_service(service_name):
+    try:
+        service_status = subprocess.run(["systemctl", "is-active", service_name], capture_output=True, text=True)
+        if "active" in service_status.stdout:
+            print(service_name, "service is running")
+        else:
+            print(service_name, "service is not running")
+    except Exception as e:
+        print("Error while checking service:", str(e))
+
+def check_log4js_remote(host, port=22):
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(host, port, timeout=20)
+
+        stdin, stdout, stderr = ssh.exec_command("npm list --depth=0")
+        log4js = stdout.read().decode("utf-8")
+
+        if "log4js" in log4js:
             print(red + "log4js detected" + reset)
         else:
             print(green + "log4js not detected" + reset)
+
+        ssh.close()
     except Exception as e:
         print(red + "Error while checking for log4js: " + str(e) + reset)
 
@@ -83,7 +131,12 @@ else:
 
 port = int(input("Enter port number: "))
 
+check_os()
+check_service("ssh")
+check_service("httpd")
 check_firewall(host, port)
 check_ids(host, port)
 check_antivirus()
-check_log4js()
+check_log4js_remote(host, port=22)
+check_nsg(host, port)
+check_ips(host, port)
