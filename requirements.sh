@@ -42,6 +42,15 @@ else
   echo "${green}[+] python3-pip is already installed!${reset}"
 fi
 
+# Check if npm is installed
+if [ $(dpkg-query -W -f='${Status}' npm 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+echo "${red}[-] Installing npm...${reset}"
+sudo apt-get install -y npm
+else
+echo "${green}[+] npm is already installed!${reset}"
+fi
+
 # Check if subprocess32 is installed
 if [ $(pip3 show subprocess32 | grep -c "Name: subprocess32") -eq 0 ];
 then
