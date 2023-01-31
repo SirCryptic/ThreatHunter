@@ -1,0 +1,11 @@
+[Nameserver 1]
+hostname: ns1.example.com
+port: 53
+
+[Nameserver 2]
+hostname: ns2.example.com
+port: 53
+
+[Nameserver 3]
+hostname: ns3.example.com
+port: 53
